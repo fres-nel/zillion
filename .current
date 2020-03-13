@@ -1,0 +1,12 @@
+ZILLION_CURRENT_BG=239
+ZILLION_CURRENT_CR=7
+
+add_current_left() {
+  draw_powerline_left $ZILLION_CURRENT_BG
+  local TEXT=`dirs`
+  TEXT=$(echo $TEXT | sed -e "s/^\///g")
+  TEXT=$(echo $TEXT | sed -e "s/\// $(echo -ne '\ue0b1') /g")
+  ZILLION_LEFT="${ZILLION_LEFT}\e[48;5;${ZILLION_CURRENT_BG}m\e[38;5;${ZILLION_CURRENT_CR}m${TEXT} \e[m"
+  ZILLION_LEFT_MODNUM=$(($ZILLION_LEFT_MODNUM+1))
+  ZILLION_BEFORE_COLOR=$ZILLION_CURRENT_BG
+}

@@ -1,0 +1,77 @@
+ZILLION_STATUS=0
+ZILLION_LEFT=""
+ZILLION_RIGHT=""
+ZILLION_LEFT_MODNUM=0
+ZILLION_RIGHT_MODNUM=0
+ZILLION_BEFORE_COLOR=""
+ZILLION_LINE=""
+
+# Powerlines
+ZILLION_POWER=1
+ZILLION_POWER_CHARA_LEFT="\ue0bc "
+ZILLION_POWER_CHARA_RIGHT=" \ue0ba"
+
+source ~/.zillion/.userhost
+source ~/.zillion/.time
+source ~/.zillion/.current
+
+draw_powerline_left() {
+  if test $ZILLION_LEFT_MODNUM -ne 0; then
+    if test $ZILLION_POWER -eq 1; then
+      ZILLION_LEFT="${ZILLION_LEFT}\e[38;5;${ZILLION_BEFORE_COLOR}m\e[48;5;${1}m${ZILLION_POWER_CHARA_LEFT}\e[m"
+    else
+      ZILLION_LEFT="${ZILLION_LEFT}\e[38;5;${ZILLION_BEFORE_COLOR}m\e[48;5;${1}m \e[m"
+    fi
+  fi
+}
+
+draw_powerline_right() {
+  if test $ZILLION_RIGHT_MODNUM -ne 0; then
+    if test $ZILLION_POWER -eq 1; then
+      ZILLION_RIGHT="\e[38;5;${ZILLION_BEFORE_COLOR}m\e[48;5;${1}m${ZILLION_POWER_CHARA_RIGHT}\e[m${ZILLION_RIGHT}"
+    else
+      ZILLION_RIGHT="\e[38;5;${ZILLION_BEFORE_COLOR}m\e[48;5;${1}m \e[m${ZILLION_RIGHT}"
+    fi
+  fi
+}
+
+zillion_reset() {
+  print ""
+  ZILLION_STATUS=$?
+  ZILLION_LEFT=""
+  ZILLION_RIGHT=""
+  ZILLION_LEFT_MODNUM=0
+  ZILLION_RIGHT_MODNUM=0
+  ZILLION_BEFORE_COLOR=""
+}
+
+print_left() {
+  draw_powerline_left 0
+  ZILLION_LINE=$ZILLION_LEFT
+}
+
+print_right() {
+  draw_powerline_right 0
+  local LEFT_LENGTH=$(echo -n $ZILLION_LEFT | sed 's/\x1b\[[0-9;]*m//g' | sed 's/\\u.{4}/u/g' | wc -m)
+  local RIGHT_LENGTH=$(echo -n $ZILLION_RIGHT | sed 's/\x1b\[[0-9;]*m//g' | sed 's/\\u.{4}/u/g' | wc -m)
+  ZILLION_LINE=$ZILLION_LEFT${(r:(${COLUMNS}-${LEFT_LENGTH}-${RIGHT_LENGTH}):: :)}$ZILLION_RIGHT
+}
+
+zillion_print() {
+  print -P $ZILLION_LINE
+}
+
+zillion() {
+  zillion_reset
+  add_userhost_left
+  add_current_left
+  print_left
+  add_time_right
+  print_right
+  zillion_print
+}
+
+PROMPT=' > '
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd zillion
